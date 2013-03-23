@@ -10,7 +10,8 @@
 #define __cocos2d_x_jc__CCJSONData__
 
 #include "cocos2d.h"
-using namespace cocos2d;
+
+namespace cocos2d {
 
 class CCNumber : public CCObject {
 private:
@@ -41,24 +42,6 @@ public:
     void setValue(double v)  { m_nValue=v; m_dValue=v;}
 };
 
-class CCBool : public CCObject {
-private:
-    bool m_bValue;
-public:
-    CCBool(bool v)
-    :m_bValue(v){}
-    
-    static CCBool * create(bool v)
-    {
-        CCBool * pRet = new CCBool(v);
-        pRet->autorelease();
-        return pRet;
-    }
-    
-    bool getValue() const { return m_bValue; }
-    void setValue(bool v) { m_bValue = v; }
-};
-
 class CCNull : public CCObject {
 public:
     static CCNull * create()
@@ -68,5 +51,7 @@ public:
         return pRet;
     }
 };
+
+} // namespace cocos2d
 
 #endif /* defined(__cocos2d_x_jc__CCJSONData__) */

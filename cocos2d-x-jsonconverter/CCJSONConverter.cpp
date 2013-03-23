@@ -8,31 +8,31 @@
 
 #include "CCJSONConverter.h"
 
-static CCJSONConverter _sharedConverter;
+namespace cocos2d {
 
-CCJSONConverter * CCJSONConverter::sharedConverter()
-{
-    static bool firstUse = true;
-    if (firstUse)
-    {
-        firstUse = false;
-    }
-    return &_sharedConverter;
-}
-
-char * CCJSONConverter::strFrom(CCDictionary *dictionary)
+const CCString *CCJSONConverter::convert(CCDictionary *dictionary)
 {
     CCAssert(dictionary, "CCJSONConverter:can not convert a null pointer");
     cJSON * json = cJSON_CreateObject();
     convertDictionaryToJson(dictionary, json);
     char *result = cJSON_PrintUnformatted(json);
     cJSON_Delete(json);
-    return result;
+    return CCString::create(result);
 }
 
-CCDictionary * CCJSONConverter::dictionaryFrom(const char *str)
+const CCString *CCJSONConverter::format(CCDictionary *dictionary)
 {
-    cJSON * json = cJSON_Parse(str);
+    CCAssert(dictionary, "CCJSONConverter:can not convert a null pointer");
+    cJSON * json = cJSON_CreateObject();
+    convertDictionaryToJson(dictionary, json);
+    char *result = cJSON_Print(json);
+    cJSON_Delete(json);
+    return CCString::create(result);
+}
+
+CCDictionary *CCJSONConverter::restore(const char *str)
+{
+    cJSON *json = cJSON_Parse(str);
     CCAssert(json && json->type==cJSON_Object, "CCJSONConverter:wrong json format");
     CCDictionary * dictionary = CCDictionary::create();
     convertJsonToDictionary(json, dictionary);
@@ -164,3 +164,5 @@ CCObject * CCJSONConverter::getJsonObj(cJSON * json)
         }
     }
 }
+
+} // namespace cocos2d
