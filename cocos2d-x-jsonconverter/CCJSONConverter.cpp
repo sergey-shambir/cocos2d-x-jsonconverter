@@ -10,7 +10,7 @@
 
 namespace cocos2d {
 
-const CCString *CCJSONConverter::convert(CCDictionary *dictionary)
+CCString *CCJSONConverter::convert(CCDictionary *dictionary)
 {
     CCAssert(dictionary, "CCJSONConverter:can not convert a null pointer");
     cJSON * json = cJSON_CreateObject();
@@ -20,7 +20,7 @@ const CCString *CCJSONConverter::convert(CCDictionary *dictionary)
     return CCString::create(result);
 }
 
-const CCString *CCJSONConverter::format(CCDictionary *dictionary)
+CCString *CCJSONConverter::format(CCDictionary *dictionary)
 {
     CCAssert(dictionary, "CCJSONConverter:can not convert a null pointer");
     cJSON * json = cJSON_CreateObject();

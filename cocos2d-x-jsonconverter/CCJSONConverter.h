@@ -19,10 +19,10 @@ class CCJSONConverter : public CCObject
 {
 public:
     /// Creates unformatted JSON string (it better for network operations)
-    static const CCString *convert(CCDictionary * dictionary);
+    static CCString *convert(CCDictionary * dictionary);
 
     /// Creates human-readable (formatted) representation
-    static const CCString *format(CCDictionary * dictionary);
+    static CCString *format(CCDictionary * dictionary);
 
     /// Restores CCDictionary from JSON-string
     static CCDictionary *restore(const char *str);
