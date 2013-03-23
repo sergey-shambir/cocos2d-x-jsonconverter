@@ -10,27 +10,17 @@
 
 namespace cocos2d {
 
-CCString *CCJSONConverter::convert(CCDictionary *dictionary)
+CCString *CCJSONConverter::getJSON(CCDictionary *dictionary)
 {
-    CCAssert(dictionary, "CCJSONConverter:can not convert a null pointer");
-    cJSON * json = cJSON_CreateObject();
-    convertDictionaryToJson(dictionary, json);
-    char *result = cJSON_PrintUnformatted(json);
-    cJSON_Delete(json);
-    return CCString::create(result);
+    return convertInternal(dictionary, &cJSON_PrintUnformatted);
 }
 
-CCString *CCJSONConverter::format(CCDictionary *dictionary)
+CCString *CCJSONConverter::getFormattedJSON(CCDictionary *dictionary)
 {
-    CCAssert(dictionary, "CCJSONConverter:can not convert a null pointer");
-    cJSON * json = cJSON_CreateObject();
-    convertDictionaryToJson(dictionary, json);
-    char *result = cJSON_Print(json);
-    cJSON_Delete(json);
-    return CCString::create(result);
+    return convertInternal(dictionary, &cJSON_Print);
 }
 
-CCDictionary *CCJSONConverter::restore(const char *str)
+CCDictionary *CCJSONConverter::getDictionary(const char *str)
 {
     cJSON *json = cJSON_Parse(str);
     CCAssert(json && json->type==cJSON_Object, "CCJSONConverter:wrong json format");
@@ -38,6 +28,18 @@ CCDictionary *CCJSONConverter::restore(const char *str)
     convertJsonToDictionary(json, dictionary);
 	cJSON_Delete(json);
     return dictionary;
+}
+
+CCString *CCJSONConverter::convertInternal(CCDictionary *dictionary, CCJSONConverter::PrintingFunction pFunction)
+{
+    CCAssert(dictionary, "CCJSONConverter:can not convert a null pointer");
+    cJSON * json = cJSON_CreateObject();
+    convertDictionaryToJson(dictionary, json);
+    char *result = pFunction(json);
+    cJSON_Delete(json);
+    CCString *pRet = CCString::create(result);
+    ::free(result);
+    return pRet;
 }
 
 void CCJSONConverter::convertJsonToDictionary(cJSON *json, CCDictionary *dictionary)
@@ -61,46 +63,46 @@ void CCJSONConverter::convertDictionaryToJson(CCDictionary *dictionary, cJSON *j
     }
 }
 
-void CCJSONConverter::convertJsonToArray(cJSON * json, CCArray * array)
+void CCJSONConverter::convertJsonToArray(cJSON *json, CCArray *array)
 {
     array->removeAllObjects();
-    int size = cJSON_GetArraySize(json);
-    for (int i=0; i<size; i++) {
-        cJSON * jsonItem = cJSON_GetArrayItem(json, i);
-        CCObject * objItem = getJsonObj(jsonItem);
+    const int size = cJSON_GetArraySize(json);
+    for (int i = 0; i < size; ++i) {
+        cJSON *jsonItem = cJSON_GetArrayItem(json, i);
+        CCObject *objItem = getJsonObj(jsonItem);
         array->addObject(objItem);
     }
 }
 
-void CCJSONConverter::convertArrayToJson(CCArray * array, cJSON * json)
+void CCJSONConverter::convertArrayToJson(CCArray *array, cJSON *json)
 {
-    CCObject * obj = NULL;
+    CCObject *obj = NULL;
     CCARRAY_FOREACH(array, obj){
-        cJSON * jsonItem = getObjJson(obj);
+        cJSON *jsonItem = getObjJson(obj);
         cJSON_AddItemToArray(json, jsonItem);
     }
 }
 
-cJSON * CCJSONConverter::getObjJson(CCObject * obj)
+cJSON *CCJSONConverter::getObjJson(CCObject *obj)
 {
     std::string s = typeid(*obj).name();
-    if(s.find("CCDictionary")!=std::string::npos){
+    if(s.find("CCDictionary") != std::string::npos){
         cJSON * json = cJSON_CreateObject();
         convertDictionaryToJson((CCDictionary *)obj, json);
         return json;
-    }else if(s.find("CCArray")!=std::string::npos){
+    } else if(s.find("CCArray") != std::string::npos) {
         cJSON * json = cJSON_CreateArray();
         convertArrayToJson((CCArray *)obj, json);
         return json;
-    }else if(s.find("CCString")!=std::string::npos){
+    } else if(s.find("CCString") != std::string::npos) {
         CCString * s = (CCString *)obj;
         cJSON * json = cJSON_CreateString(s->getCString());
         return json;
-    }else if(s.find("CCNumber")!=std::string::npos){
+    } else if(s.find("CCNumber") != std::string::npos) {
         CCNumber * n = (CCNumber *)obj;
         cJSON * json = cJSON_CreateNumber(n->getDoubleValue());
         return json;
-    }else if(s.find("CCBool")!=std::string::npos){
+    } else if(s.find("CCBool") != std::string::npos) {
         CCBool * b = (CCBool *)obj;
         cJSON * json;
         if (b->getValue()) {
@@ -110,51 +112,51 @@ cJSON * CCJSONConverter::getObjJson(CCObject * obj)
         }
         return json;
     }else if(s.find("CCNull")!=std::string::npos){
-        cJSON * json = cJSON_CreateNull();
+        cJSON *json = cJSON_CreateNull();
         return json;
     }
     CCLog("CCJSONConverter encountered an unrecognized type");
     return NULL;
 }
 
-CCObject * CCJSONConverter::getJsonObj(cJSON * json)
+CCObject * CCJSONConverter::getJsonObj(cJSON *json)
 {
     switch (json->type) {
         case cJSON_Object:
         {
-            CCDictionary * dictionary = CCDictionary::create();
+            CCDictionary *dictionary = CCDictionary::create();
             convertJsonToDictionary(json, dictionary);
             return dictionary;
         }
         case cJSON_Array:
         {
-            CCArray * array = CCArray::create();
+            CCArray *array = CCArray::create();
             convertJsonToArray(json, array);
             return array;
         }
         case cJSON_String:
         {
-            CCString * string = CCString::create(json->valuestring);
+            CCString *string = CCString::create(json->valuestring);
             return string;
         }
         case cJSON_Number:
         {
-            CCNumber * number = CCNumber::create(json->valuedouble);
+            CCNumber *number = CCNumber::create(json->valuedouble);
             return number;
         }
         case cJSON_True:
         {
-            CCBool * boolean = CCBool::create(true);
+            CCBool *boolean = CCBool::create(true);
             return boolean;
         }
         case cJSON_False:
         {
-            CCBool * boolean = CCBool::create(false);
+            CCBool *boolean = CCBool::create(false);
             return boolean;
         }
         case cJSON_NULL:
         {
-            CCNull * null = CCNull::create();
+            CCNull *null = CCNull::create();
             return null;
         }
         default:

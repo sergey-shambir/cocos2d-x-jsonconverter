@@ -19,15 +19,18 @@ class CCJSONConverter : public CCObject
 {
 public:
     /// Creates unformatted JSON string (it better for network operations)
-    static CCString *convert(CCDictionary * dictionary);
+    static CCString *getJSON(CCDictionary *dictionary);
 
     /// Creates human-readable (formatted) representation
-    static CCString *format(CCDictionary * dictionary);
+    static CCString *getFormattedJSON(CCDictionary *dictionary);
 
     /// Restores CCDictionary from JSON-string
-    static CCDictionary *restore(const char *str);
+    static CCDictionary *getDictionary(const char *str);
     
 private:
+    typedef char *(*PrintingFunction)(cJSON *item);
+    static CCString *convertInternal(CCDictionary *dictionary, PrintingFunction pFunction);
+
     static void convertJsonToDictionary(cJSON *json, CCDictionary *dictionary);
     static void convertDictionaryToJson(CCDictionary *dictionary, cJSON *json);
     static void convertJsonToArray(cJSON *json, CCArray *array);
